@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/colin/DevProjects/C++ Testing/fractal-renderer/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

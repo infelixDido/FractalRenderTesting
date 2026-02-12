@@ -1,0 +1,3 @@
+/home/colin/DevProjects/C++ Testing/fractal-renderer/build/CMakeFiles/fractal-renderer.dir
+/home/colin/DevProjects/C++ Testing/fractal-renderer/build/CMakeFiles/edit_cache.dir
+/home/colin/DevProjects/C++ Testing/fractal-renderer/build/CMakeFiles/rebuild_cache.dir
