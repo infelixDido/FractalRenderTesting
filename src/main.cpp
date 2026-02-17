@@ -3,14 +3,17 @@
 #include <cstdint>
 #include <iostream>
 
+using namespace std;
+using namespace sf;
+
 int main() {
     const unsigned int WIDTH = 800;
     const unsigned int HEIGHT = 600;
     
-    sf::RenderWindow window(sf::VideoMode({WIDTH, HEIGHT}), "Fractal Renderer");
-    sf::Image image({WIDTH, HEIGHT}, sf::Color::Black);
+    RenderWindow mywindow(VideoMode({WIDTH, HEIGHT}), "Fractal Renderer");
+    Image myimage({WIDTH, HEIGHT}, Color::Black);
 
-    std::cout << "Image size: " << image.getSize().x << "x" << image.getSize().y << std::endl;
+    cout << "Image size: " << myimage.getSize().x << "x" << myimage.getSize().y << endl;
     
     // Render the Mandelbrot set
     for (unsigned int py = 0; py < HEIGHT; py++) {
@@ -21,31 +24,31 @@ int main() {
             
             int iterations = fractals::Mandelbrot::calculate(x, y, 100);
             
-            // Simple grayscale coloring
-            uint8_t color = (iterations == 100) ? 0 : (iterations * 255 / 100);
-            image.setPixel({px, py}, sf::Color(color, color, color));
+            // Simple grayscale mycoloring
+            uint8_t mycolor = (iterations == 100) ? 0 : (iterations * 255 / 100);
+            myimage.setPixel({px, py}, Color(mycolor, mycolor, mycolor));
         }
     }
     
-    std::cout << "Rendering complete" << std::endl;
+    cout << "Rendering complete" << endl;
     
-    sf::Texture texture;
-    if (!texture.loadFromImage(image)) {
-        std::cerr << "Failed to load texture from image" << std::endl;
+    Texture mytexture;
+    if (!mytexture.loadFromImage(myimage)) {
+        cerr << "Failed to load mytexture from myimage" << endl;
         return -1;
     }
-    sf::Sprite sprite(texture);
+    Sprite mysprite(mytexture);
     
-    while (window.isOpen()) {
-        while (auto event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>()) {
-                window.close();
+    while (mywindow.isOpen()) {
+        while (auto event = mywindow.pollEvent()) {
+            if (event->is<Event::Closed>()) {
+                mywindow.close();
             }
         }
         
-        window.clear();
-        window.draw(sprite);
-        window.display();
+        mywindow.clear();
+        mywindow.draw(mysprite);
+        mywindow.display();
     }
     
     return 0;
