@@ -1,55 +1,72 @@
 #include <SFML/Graphics.hpp>
-#include "fractal-renderer/fractals/mandelbrot.h"
-#include <cstdint>
 #include <iostream>
+
 
 using namespace std;
 using namespace sf;
 
-int main() {
-    const unsigned int WIDTH = 800;
-    const unsigned int HEIGHT = 600;
-    
-    RenderWindow mywindow(VideoMode({WIDTH, HEIGHT}), "Fractal Renderer");
-    Image myimage({WIDTH, HEIGHT}, Color::Black);
+void renderFractal(Image& image, unsigned int WIDTH, unsigned int HEIGHT);
 
-    cout << "Image size: " << myimage.getSize().x << "x" << myimage.getSize().y << endl;
-    
-    // Render the Mandelbrot set
-    for (unsigned int py = 0; py < HEIGHT; py++) {
-        for (unsigned int px = 0; px < WIDTH; px++) {
-            // Map pixel to complex plane
-            double x = (px - WIDTH / 2.0) * 4.0 / WIDTH;
-            double y = (py - HEIGHT / 2.0) * 4.0 / HEIGHT;
-            
-            int iterations = fractals::Mandelbrot::calculate(x, y, 100);
-            
-            // Simple grayscale mycoloring
-            uint8_t mycolor = (iterations == 100) ? 0 : (iterations * 255 / 100);
-            myimage.setPixel({px, py}, Color(mycolor, mycolor, mycolor));
-        }
+int main() {
+  const unsigned int WIDTH = 800;
+  const unsigned int HEIGHT = 600;
+  
+  RenderWindow mywindow(VideoMode({WIDTH, HEIGHT}), "Fractal Renderer");
+  Image myimage({WIDTH, HEIGHT}, Color::Black);
+  Texture mytexture;
+  Sprite mysprite(mytexture);
+  Shader myshader;
+  RectangleShape myquad;
+  
+  bool use_gpu = true;
+  
+  if (use_gpu) {
+
+    bool shaderLoaded = myshader.loadFromFile("shaders/mandelbrot.frag", Shader::Type::Fragment);
+    if (!shaderLoaded) {
+      cerr << "Failed to load shader" << endl;
+      return -1;
     }
+    cout << "shader loaded successfully" << endl;
     
+    myshader.setUniform("u_resolution", Vector2f(WIDTH, HEIGHT));
+    myshader.setUniform("u_max_iterations", 100);
+
+    myquad.setSize(Vector2f(WIDTH, HEIGHT));
+
+
+  } else {
+    
+    cout << "Image size: " << myimage.getSize().x << "x" << myimage.getSize().y << endl;
+    renderFractal(myimage, WIDTH, HEIGHT);
     cout << "Rendering complete" << endl;
     
-    Texture mytexture;
-    if (!mytexture.loadFromImage(myimage)) {
+    bool textureLoaded = mytexture.loadFromImage(myimage);
+    if (!textureLoaded) {
         cerr << "Failed to load mytexture from myimage" << endl;
         return -1;
     }
-    Sprite mysprite(mytexture);
+  }
     
-    while (mywindow.isOpen()) {
-        while (auto event = mywindow.pollEvent()) {
-            if (event->is<Event::Closed>()) {
-                mywindow.close();
-            }
-        }
-        
-        mywindow.clear();
+
+
+  while (mywindow.isOpen()) {
+      while (auto event = mywindow.pollEvent()) {
+          if (event->is<Event::Closed>()) {
+              mywindow.close();
+          }
+      }
+      
+      mywindow.clear();
+
+      if (use_gpu) {
+        mywindow.draw(myquad, &myshader);
+      } else {
         mywindow.draw(mysprite);
-        mywindow.display();
-    }
-    
-    return 0;
+      }
+
+      mywindow.display();
+  }
+  
+  return 0;
 }
