@@ -28,9 +28,10 @@ int main() {
       return -1;
     }
     cout << "shader loaded successfully" << endl;
-    
+
     myshader.setUniform("u_resolution", Vector2f(WIDTH, HEIGHT));
     myshader.setUniform("u_max_iterations", 100);
+    
 
     myquad.setSize(Vector2f(WIDTH, HEIGHT));
 
@@ -48,7 +49,7 @@ int main() {
     }
   }
     
-
+  float cameraSpeed = 400.f;
 
   while (mywindow.isOpen()) {
       while (auto event = mywindow.pollEvent()) {
