@@ -12,7 +12,7 @@ find_package(SFML 3 COMPONENTS Graphics Window System REQUIRED)
 add_executable(fractal-renderer
     src/main.cpp
     src/fractals/mandelbrot.cpp
-    src/renderer/cpu_renderer.cpp
+    src/renderer/mandelbrot_cpu_renderer.cpp
   )
 # Include directories
 target_include_directories(fractal-renderer PRIVATE

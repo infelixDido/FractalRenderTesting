@@ -2,7 +2,7 @@
 
 namespace fractals {
 
-int Mandelbrot::calculate(double x, double y, int max_iterations) {
+int Mandelbrot::calculateIterations(double x, double y, int max_iterations) {
     double zx = 0.0;
     double zy = 0.0;
     int iteration = 0;

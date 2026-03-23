@@ -1,72 +1,67 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 
-
-using namespace std;
-using namespace sf;
-
-void renderFractal(Image& image, unsigned int WIDTH, unsigned int HEIGHT);
+void cpuRenderMandelbrotFractal(sf::Image& image, unsigned int WIDTH, unsigned int HEIGHT);
 
 int main() {
   const unsigned int WIDTH = 800;
   const unsigned int HEIGHT = 600;
-  
-  RenderWindow mywindow(VideoMode({WIDTH, HEIGHT}), "Fractal Renderer");
-  Image myimage({WIDTH, HEIGHT}, Color::Black);
-  Texture mytexture;
-  Sprite mysprite(mytexture);
-  Shader myshader;
-  RectangleShape myquad;
-  
-  bool use_gpu = true;
+  bool use_gpu = false;
+
+  sf::RenderWindow mywindow(sf::VideoMode({WIDTH, HEIGHT}), "Fractal Renderer");
+
+  // CPU rendering setup
+  sf::Image myimage({WIDTH, HEIGHT}, sf::Color::Black);
+  sf::Texture mytexture;
+  sf::Sprite mysprite(mytexture);
+
+  // GPU rendering setup
+  sf::Shader myshader;
+  sf::RectangleShape myquad;
   
   if (use_gpu) {
-
-    bool shaderLoaded = myshader.loadFromFile("shaders/mandelbrot.frag", Shader::Type::Fragment);
+    bool shaderLoaded = myshader.loadFromFile("shaders/mandelbrot.frag", sf::Shader::Type::Fragment);
     if (!shaderLoaded) {
-      cerr << "Failed to load shader" << endl;
+      std::cerr << "Failed to load shader" << std::endl;
       return -1;
     }
-    cout << "shader loaded successfully" << endl;
+    std::cout << "shader loaded successfully" << std::endl;
 
-    myshader.setUniform("u_resolution", Vector2f(WIDTH, HEIGHT));
+    myshader.setUniform("u_resolution", sf::Vector2f(WIDTH, HEIGHT));
     myshader.setUniform("u_max_iterations", 100);
     
-
-    myquad.setSize(Vector2f(WIDTH, HEIGHT));
-
+    myquad.setSize(sf::Vector2f(WIDTH, HEIGHT));
 
   } else {
     
-    cout << "Image size: " << myimage.getSize().x << "x" << myimage.getSize().y << endl;
-    renderFractal(myimage, WIDTH, HEIGHT);
-    cout << "Rendering complete" << endl;
+    std::cout << "Image size: " << myimage.getSize().x << "x" << myimage.getSize().y << std::endl;
+    cpuRenderMandelbrotFractal(myimage, WIDTH, HEIGHT);
+    std::cout << "Rendering complete" << std::endl;
     
     bool textureLoaded = mytexture.loadFromImage(myimage);
     if (!textureLoaded) {
-        cerr << "Failed to load mytexture from myimage" << endl;
-        return -1;
+      std::cerr << "Failed to load mytexture from myimage" << std::endl;
+      return -1;
     }
+    mysprite.setTexture(mytexture, true);
   }
-    
-  float cameraSpeed = 400.f;
 
   while (mywindow.isOpen()) {
-      while (auto event = mywindow.pollEvent()) {
-          if (event->is<Event::Closed>()) {
-              mywindow.close();
-          }
+    while (auto event = mywindow.pollEvent()) {
+      if (event->is<sf::Event::Closed>()) {
+        mywindow.close();
       }
-      
-      mywindow.clear();
+    }
+    
+    mywindow.clear();
 
-      if (use_gpu) {
-        mywindow.draw(myquad, &myshader);
-      } else {
-        mywindow.draw(mysprite);
-      }
+    if (use_gpu) {
+      mywindow.draw(myquad, &myshader);
+    } else {
+      mywindow.draw(mysprite);
+    }
 
-      mywindow.display();
+    mywindow.display();
   }
   
   return 0;
