@@ -1,9 +1,13 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include "fractal-renderer/fractals/mobius.h"
 
 void cpuRenderMandelbrotFractal(sf::Image& image, unsigned int WIDTH, unsigned int HEIGHT);
 
 int main() {
+  Mobius m  = math::Mobius(1.0, 0.0, 0.0, 1.0);
+  std::cout << m.a << std::endl; 
+
   const unsigned int WIDTH = 800;
   const unsigned int HEIGHT = 600;
   bool use_gpu = false;
