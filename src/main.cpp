@@ -5,7 +5,7 @@
 void cpuRenderMandelbrotFractal(sf::Image& image, unsigned int WIDTH, unsigned int HEIGHT);
 
 int main() {
-  Mobius m  = math::Mobius(1.0, 0.0, 0.0, 1.0);
+  math::Mobius m  = math::Mobius(1.0, 0.0, 0.0, 1.0);
   std::cout << m.a << std::endl; 
 
   const unsigned int WIDTH = 800;
