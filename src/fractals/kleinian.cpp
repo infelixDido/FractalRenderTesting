@@ -1,25 +1,35 @@
-#include "fractal-renderer/fractals/mobius.h"
+#include "fractal-renderer/fractals/kleinian.h"
 
-namespace math {
+std::vector<std::complex<double>> generateLimitSet(int maxDepth) const {
+  std::vector<std::complex<double>> points;
 
-void generateLimitSet(const Mobius& currentW, int depth, int lastIdx, std::vector<Mobius>& generators) {
-  if (depth >= MAX_DEPTH) {
-    // Send to shader to draw seed point with stored matrix
-    // drawPointWithShader();
-    return;
+  // Each element of the queue is a (transform, last_index) pair
+  // representing the word built up so far
+  std::queue<std::pair<Mobius, int>> queue;
+
+  // Seed the queue with each generator
+  for (int i = 0; i < generators.size(); i++) {
+    queue.push({generators[i].transform, i});
   }
 
-  for (int i = 0; i < 4; ++i) {
-      // Skip the inverse of the last move to prevent backtracking
-      // (This assumes 0/1 and 2/3 are inverse pairs)
-      if (depth > 0 && i == (lastIdx ^ 1)) continue;
+  std::complex<double> seed = 0.0;
 
-      // Compose the new word: NewW = currentW * Generator[i]
-      Mobius nextW = currentW.compose(generators[i]);
-      
-      // Recurse deeper
-      generateLimitSet(nextW, depth + 1, i, generators);
+  for (int depth = 0; depth < maxDepth; depth++) {
+    int levelSize = queue.size();
+    for (int i = 0; i < levelSize; i++) {
+      auto [current, last_index] = queue.front();
+      queue.pop();
+
+      points.push_back(current.apply(seed));
+
+      // Extend the word by each generator, skipping the inverse of the last
+      for (int j = 0; j < generators.size(); j++) {
+        if (j == generators[last_index].inverse_index)
+          continue;
+        queue.push({current.compose(generators[j].transform), j});
+      }
+    }
   }
-}
 
+  return points;
 }
