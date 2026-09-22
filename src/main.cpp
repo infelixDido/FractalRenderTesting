@@ -1,72 +1,85 @@
 #include <SFML/Graphics.hpp>
-#include <iostream>
-#include "fractal-renderer/fractals/mobius.h"
 
-void cpuRenderMandelbrotFractal(sf::Image& image, unsigned int WIDTH, unsigned int HEIGHT);
+#include <complex>
+#include <iostream>
+#include <vector>
+
+#include "fractal-renderer/groups/classical_schottky.h"
+#include "fractal-renderer/rendering/kleinian_limit_set_renderer.h"
+#include "fractal-renderer/groups/grandmas_recipe.h"
 
 int main() {
-  math::Mobius m  = math::Mobius(1.0, 0.0, 0.0, 1.0);
-  std::cout << m.a << std::endl; 
+    constexpr unsigned int window_width = 900;
+    constexpr unsigned int window_height = 900;
 
-  const unsigned int WIDTH = 800;
-  const unsigned int HEIGHT = 600;
-  bool use_gpu = false;
+    std::complex<double> generator_a_trace(2.0, 0.0);
+    std::complex<double> generator_b_trace(2.0, 0.0);
 
-  sf::RenderWindow mywindow(sf::VideoMode({WIDTH, HEIGHT}), "Fractal Renderer");
+    groups::KleinianGroup kleinian_group =
+        groups::createParabolicCommutatorGroupFromTraces(
+            generator_a_trace,
+            generator_b_trace
+        );
 
-  // CPU rendering setup
-  sf::Image myimage({WIDTH, HEIGHT}, sf::Color::Black);
-  sf::Texture mytexture;
-  sf::Sprite mysprite(mytexture);
+    const math::MobiusTransformation& first_generator =
+        kleinian_group.generators()[0];
 
-  // GPU rendering setup
-  sf::Shader myshader;
-  sf::RectangleShape myquad;
-  
-  if (use_gpu) {
-    bool shaderLoaded = myshader.loadFromFile("shaders/mandelbrot.frag", sf::Shader::Type::Fragment);
-    if (!shaderLoaded) {
-      std::cerr << "Failed to load shader" << std::endl;
-      return -1;
-    }
-    std::cout << "shader loaded successfully" << std::endl;
+    std::array<math::RiemannSpherePoint, 2> fixed_points =
+        first_generator.fixedPoints();
 
-    myshader.setUniform("u_resolution", sf::Vector2f(WIDTH, HEIGHT));
-    myshader.setUniform("u_max_iterations", 100);
-    
-    myquad.setSize(sf::Vector2f(WIDTH, HEIGHT));
+    // A fixed point of a loxodromic generator belongs to the
+    // Kleinian group's limit set.
+    math::RiemannSpherePoint starting_limit_point =
+        fixed_points[0];
 
-  } else {
-    
-    std::cout << "Image size: " << myimage.getSize().x << "x" << myimage.getSize().y << std::endl;
-    cpuRenderMandelbrotFractal(myimage, WIDTH, HEIGHT);
-    std::cout << "Rendering complete" << std::endl;
-    
-    bool textureLoaded = mytexture.loadFromImage(myimage);
-    if (!textureLoaded) {
-      std::cerr << "Failed to load mytexture from myimage" << std::endl;
-      return -1;
-    }
-    mysprite.setTexture(mytexture, true);
-  }
+    sf::Image image(
+        {window_width, window_height},
+        sf::Color::Black
+    );
 
-  while (mywindow.isOpen()) {
-    while (auto event = mywindow.pollEvent()) {
-      if (event->is<sf::Event::Closed>()) {
-        mywindow.close();
-      }
-    }
-    
-    mywindow.clear();
+    rendering::ComplexViewport viewport = {
+        -3,
+        3,
+        -3,
+        3.0
+    };
 
-    if (use_gpu) {
-      mywindow.draw(myquad, &myshader);
-    } else {
-      mywindow.draw(mysprite);
+    unsigned int maximum_word_length = 13;
+
+    rendering::renderKleinianLimitSet(
+        image,
+        kleinian_group,
+        starting_limit_point,
+        maximum_word_length,
+        viewport,
+        0
+    );
+
+    sf::Texture texture;
+
+    if (!texture.loadFromImage(image)) {
+        std::cerr << "Failed to create texture." << std::endl;
+        return 1;
     }
 
-    mywindow.display();
-  }
-  
-  return 0;
+    sf::Sprite sprite(texture);
+
+    sf::RenderWindow window(
+        sf::VideoMode({window_width, window_height}),
+        "Kleinian Limit Set"
+    );
+
+    while (window.isOpen()) {
+        while (auto event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+            }
+        }
+
+        window.clear(sf::Color::Black);
+        window.draw(sprite);
+        window.display();
+    }
+
+    return 0;
 }
